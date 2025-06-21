@@ -1,0 +1,33 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "scripts/**"
+    - "docs/**"
+    - "example/**"
+    - "test/**"
+
+linter:
+  rules:
+    # Preferencias de estilo
+    prefer_single_quotes: true
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+    
+    # Documentación
+    public_member_api_docs: false  # Deshabilitado para CLI tools
+    
+    # Imports
+    avoid_relative_lib_imports: true
+    prefer_relative_imports: true
+    
+    # Naming
+    camel_case_types: true
+    
+    # Otros
+    avoid_print: false  # Permitido en CLI tools
+    avoid_unnecessary_containers: true
