@@ -3,12 +3,12 @@ import 'package:args/args.dart';
 import 'commands/commands.dart';
 import 'utils/logger.dart';
 
-/// Runner principal del CLI
+/// Main CLI runner for FPD Toolkit
 class CliRunner {
   late final ArgParser _parser;
   late final Map<String, Command> _commands;
 
-  /// Crea una nueva instancia del CLI runner
+  /// Creates a new instance of the CLI runner
   CliRunner() {
     _setupCommands();
     _setupParser();
@@ -31,99 +31,99 @@ class CliRunner {
         'help',
         abbr: 'h',
         negatable: false,
-        help: 'Muestra ayuda para el comando',
+        help: 'Show help for the command',
       )
       ..addFlag(
         'version',
         abbr: 'v',
         negatable: false,
-        help: 'Muestra la versión del CLI',
+        help: 'Show CLI version',
       )
       ..addFlag(
         'verbose',
         negatable: false,
-        help: 'Habilita logging detallado',
+        help: 'Enable detailed logging',
       );
 
-    // Agregar subcomandos
+    // Add subcommands
     for (final command in _commands.values) {
       _parser.addCommand(command.name, command.argParser);
     }
   }
 
-  /// Ejecuta el CLI con los argumentos proporcionados
+  /// Runs the CLI with the provided arguments
   Future<void> run(List<String> arguments) async {
     try {
       final results = _parser.parse(arguments);
 
-      // Configurar logging
+      // Configure logging
       if (results['verbose'] as bool) {
         Logger.enableVerbose();
       }
 
-      // Mostrar versión
+      // Show version
       if (results['version'] as bool) {
         _showVersion();
         return;
       }
 
-      // Mostrar ayuda general
+      // Show general help
       if (results['help'] as bool || results.command == null) {
         _showHelp();
         return;
       }
 
-      // Ejecutar comando
+      // Execute command
       final commandName = results.command!.name;
       final command = _commands[commandName];
       
       if (command != null) {
         await command.run(results.command!);
       } else {
-        Logger.error('Comando desconocido: $commandName');
+        Logger.error('Unknown command: $commandName');
         _showHelp();
         exit(1);
       }
     } catch (e) {
-      Logger.error('Error ejecutando comando: $e');
+      Logger.error('Error executing command: $e');
       exit(1);
     }
   }
 
   void _showVersion() {
     Logger.info('🚀 FPD Toolkit v1.0.0');
-    Logger.info('Generador de paquetes Flutter/Dart con mejores prácticas');
+    Logger.info('Professional Flutter/Dart package generator with best practices');
   }
 
   void _showHelp() {
-    print('🚀 FPD Toolkit - CLI para desarrollo Flutter/Dart profesional');
+    print('🚀 FPD Toolkit - Professional Flutter/Dart development CLI');
     print('''
-Uso: fpd-toolkit <comando> [argumentos]
+Usage: fpd-toolkit <command> [arguments]
 
-Comandos disponibles:
-  create      Crea un nuevo paquete Flutter/Dart
-  validate    Valida un paquete existente
-  guide       Muestra guías de desarrollo
-  example     Genera ejemplos de código
-  template    Gestiona templates de proyecto
-  init        Inicializa un proyecto existente
+Available commands:
+  create      Create a new Flutter/Dart package
+  validate    Validate an existing package
+  guide       Show development guides
+  example     Generate code examples
+  template    Manage project templates
+  init        Initialize an existing project
 
-Opciones globales:
-  -h, --help      Muestra esta ayuda
-  -v, --version   Muestra la versión
-      --verbose   Habilita logging detallado
+Global options:
+  -h, --help      Show this help
+  -v, --version   Show version
+      --verbose   Enable detailed logging
 
-Ejemplos:
-  fpd-toolkit create app mi_app
-  fpd-toolkit create plugin mi_plugin --platforms android,ios
-  fpd-toolkit validate ./mi_paquete
+Examples:
+  fpd-toolkit create app my_app
+  fpd-toolkit create plugin my_plugin --platforms android,ios
+  fpd-toolkit validate ./my_package
   fpd-toolkit guide --list
   fpd-toolkit template list
 
-Para ayuda específica de un comando:
-  fpd-toolkit <comando> --help
+For specific command help:
+  fpd-toolkit <command> --help
 
-Documentación completa:
+Complete documentation:
   fpd-toolkit guide --list
 ''');
   }

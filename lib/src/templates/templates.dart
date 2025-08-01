@@ -1,5 +1,5 @@
-/// Exporta todos los templates
-library templates;
+/// Exports all templates
+library;
 
-// Los templates se manejan directamente en el generador por ahora
-// En futuras versiones se pueden extraer a archivos separados
+// Templates are handled directly in the generator for now
+// In future versions they can be extracted to separate files

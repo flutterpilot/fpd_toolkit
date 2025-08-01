@@ -1,5 +1,5 @@
-/// Exporta todas las utilidades
-library utils;
+/// Exports all utilities
+library;
 
 export 'logger.dart';
 export 'validator.dart';

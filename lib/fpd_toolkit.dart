@@ -1,5 +1,5 @@
-/// fpd_toolkit - CLI toolkit para generar paquetes Flutter/Dart de alta calidad con mejores prácticas
-library fpd_toolkit;
+/// fpd_toolkit - Professional CLI toolkit for generating high-quality Flutter/Dart packages following industry best practices
+library;
 
 export 'src/cli_runner.dart';
 export 'src/commands/commands.dart';
@@ -9,9 +9,9 @@ export 'src/utils/utils.dart';
 
 import 'src/cli_runner.dart';
 
-/// Clase principal del CLI
+/// Main CLI class for FPD Toolkit
 class FpdToolkit {
-  /// Ejecuta el CLI con los argumentos proporcionados
+  /// Runs the CLI with the provided arguments
   static Future<void> run(List<String> arguments) async {
     final runner = CliRunner();
     await runner.run(arguments);
