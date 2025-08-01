@@ -93,7 +93,7 @@ class GuideCommand extends Command {
 
     final args = argResults.rest;
     if (args.isEmpty) {
-      _listGuides();
+      await _listGuides();
       Logger.info('\nUsage: fpd-toolkit guide <guide-path> to view a specific guide');
       Logger.info('       fpd-toolkit guide --all to view all guides');
       return;
@@ -103,7 +103,7 @@ class GuideCommand extends Command {
     await _showGuide(guidePath);
   }
 
-  void _listGuides() {
+  Future<void> _listGuides() async {
     final guides = _discoverGuides();
     
     if (guides.isEmpty) {
@@ -130,10 +130,22 @@ class GuideCommand extends Command {
     }
 
     Logger.info('Usage examples:');
-    Logger.info('  fpd-toolkit guide best-practices architecture-structure');
-    Logger.info('  fpd-toolkit guide development-guide fundamentals');
+    await _showDynamicExamples();
     Logger.info('  fpd-toolkit guide --all');
     Logger.info('  fpd-toolkit guide --copy');
+  }
+
+  Future<void> _showDynamicExamples() async {
+    final guides = _discoverGuides();
+    final exampleGuides = guides.keys.take(2).toList();
+    
+    if (exampleGuides.isNotEmpty) {
+      for (final example in exampleGuides) {
+        Logger.info('  fpd-toolkit guide $example');
+      }
+    } else {
+      Logger.info('  fpd-toolkit guide [guide-name]');
+    }
   }
 
   Future<void> _showGuide(String guidePath) async {
@@ -247,7 +259,7 @@ fpd-toolkit validate ./my_project
 
 # View development guides
 fpd-toolkit guide --list
-fpd-toolkit guide best-practices architecture-structure
+fpd-toolkit guide [guide-name]
 \\`\\`\\`
 
 ## Useful examples
@@ -435,8 +447,8 @@ Options:
   -h, --help           Show this help
 
 Examples:
-  fpd-toolkit guide best-practices architecture-structure
-  fpd-toolkit guide development-guide fundamentals
+  fpd-toolkit guide [guide-name]
+  fpd-toolkit guide [another-guide]
   fpd-toolkit guide --list
   fpd-toolkit guide --all
   fpd-toolkit guide --copy --output ./documentation

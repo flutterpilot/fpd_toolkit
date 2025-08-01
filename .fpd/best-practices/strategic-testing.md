@@ -2,7 +2,6 @@
 title: Strategic Testing
 description: This rule provides a strategic guide to testing in Flutter and Dart. It covers the complete testing pyramid with examples of exhaustive unit tests, widget tests including golden file testing for UI consistency, and end-to-end integration tests for user flows. It also includes best practices for managing mock data and dependencies.
 alwaysApply: false
-title: Strategic Testing
 globs:
   - '**/test/**'
   - '**/integration_test/**'
@@ -229,4 +228,4 @@ class MockDependencies {
     );
   }
 }
-``` 
+```

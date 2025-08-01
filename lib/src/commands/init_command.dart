@@ -978,7 +978,7 @@ Future<void> _runCommand(String command, List<String> args) async {
     Logger.info('   ✅ Development scripts (Makefile)');
     
     Logger.info('\n📖 For more information:');
-    Logger.info('   fpd-toolkit guide --all');
+    Logger.info('   fpd-toolkit guide --list');
     Logger.info('   make help');
   }
 

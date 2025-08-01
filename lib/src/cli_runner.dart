@@ -117,14 +117,14 @@ Ejemplos:
   fpd-toolkit create app mi_app
   fpd-toolkit create plugin mi_plugin --platforms android,ios
   fpd-toolkit validate ./mi_paquete
-  fpd-toolkit guide architecture
+  fpd-toolkit guide --list
   fpd-toolkit template list
 
 Para ayuda específica de un comando:
   fpd-toolkit <comando> --help
 
 Documentación completa:
-  fpd-toolkit guide --all
+  fpd-toolkit guide --list
 ''');
   }
 }

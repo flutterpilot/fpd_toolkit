@@ -347,7 +347,7 @@ class CreateCommand extends Command {
     print('');
     print('📖 To view development guides:');
     print('   fpd-toolkit guide --list');
-    print('   fpd-toolkit guide best-practices architecture-structure');
+    print('   fpd-toolkit guide [guide-name]');
     print('');
   }
 
