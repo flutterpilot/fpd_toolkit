@@ -1,5 +1,5 @@
-/// Exporta todos los comandos disponibles
-library commands;
+/// Exports all available commands
+library;
 
 export 'base_command.dart';
 export 'create_command.dart';

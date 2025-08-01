@@ -1,230 +1,275 @@
 # 🚀 FPD Toolkit
 
-**CLI toolkit profesional para generar paquetes Flutter/Dart de alta calidad siguiendo las mejores prácticas de la industria.**
+**Professional CLI toolkit for generating high-quality Flutter/Dart packages following industry best practices.**
 
-FPD Toolkit es una herramienta completa que te permite crear paquetes Flutter/Dart que cumplen con todos los estándares de pub.dev y las mejores prácticas de desarrollo. Incluye generación automática, validación, documentación interactiva y ejemplos prácticos.
+FPD Toolkit is a comprehensive tool that enables you to create Flutter/Dart packages that meet all pub.dev standards and development best practices. It includes automatic generation, validation, interactive documentation, and practical examples.
 
-## ✨ Características Principales
+## ✨ Key Features
 
-### 🚀 Generación Automática
-- **Aplicaciones Flutter** - Apps completas con estructura Material Design
-- **Plugins Flutter** - Plugins multiplataforma con interfaz nativa
-- **Paquetes Dart** - Librerías puras optimizadas para pub.dev
+### 🚀 Automatic Generation
+- **Flutter Applications** - Complete apps with Material Design structure
+- **Flutter Plugins** - Cross-platform plugins with native interfaces
+- **Dart Packages** - Pure libraries optimized for pub.dev
 
-### 🎯 Validación Avanzada
-- **Scoring pub.dev** - Evaluación automática que alcanza 125+ puntos
-- **Análisis de código** - Detección de problemas y mejoras
-- **Verificación de estructura** - Validación de archivos requeridos
+### 🎯 Advanced Validation
+- **pub.dev Scoring** - Automatic evaluation achieving 125+ points
+- **Code Analysis** - Problem detection and improvements
+- **Structure Verification** - Required file validation
 
-### 📚 Documentación Interactiva
-- **Guías paso a paso** - Tutoriales interactivos de desarrollo
-- **Ejemplos prácticos** - Código de ejemplo con mejores prácticas
-- **Patrones de arquitectura** - Clean Architecture, MVVM, BLoC
+### 📚 Interactive Documentation
+- **Step-by-step Guides** - Interactive development tutorials from comprehensive `.fpd` directory
+- **Practical Examples** - Example code with best practices
+- **Architecture Patterns** - Clean Architecture, MVVM, BLoC
 
-### 🛠️ Gestión de Templates
-- **Templates personalizados** - Crea y reutiliza plantillas
-- **Configuración flexible** - Adapta la generación a tus necesidades
-- **Múltiples plataformas** - Soporte para Android, iOS, Web, Desktop
+### 🛠️ Template Management
+- **Custom Templates** - Create and reuse templates
+- **Flexible Configuration** - Adapt generation to your needs
+- **Multiple Platforms** - Support for Android, iOS, Web, Desktop
 
-## 🚀 Instalación
+## 🚀 Installation
 
-### Activación Global
+### Global Activation
 ```bash
 dart pub global activate fpd_toolkit
 ```
 
-### Uso Directo
+### Direct Usage
 ```bash
 dart pub global run fpd_toolkit
 ```
 
-## 📖 Guía de Uso
+## 📖 Usage Guide
 
-### Crear un Nuevo Paquete
+### Create a New Package
 ```bash
-# Crear paquete Dart
-fpd-toolkit create package mi_paquete --description "Mi paquete increíble"
+# Create Dart package
+fpd-toolkit create package my_package --description "My awesome package"
 
-# Crear aplicación Flutter
-fpd-toolkit create app mi_app --description "Mi aplicación Flutter"
+# Create Flutter application
+fpd-toolkit create app my_app --description "My Flutter application"
 
-# Crear plugin Flutter
-fpd-toolkit create plugin mi_plugin --platforms android,ios --description "Mi plugin nativo"
+# Create Flutter plugin
+fpd-toolkit create plugin my_plugin --platforms android,ios --description "My native plugin"
 ```
 
-### Validar un Paquete
+### Validate a Package
 ```bash
-fpd-toolkit validate mi_paquete
-# Resultado: 125/130 puntos pub.dev
+fpd-toolkit validate my_package
+# Result: 125/130 pub.dev points
 ```
 
-### Acceder a Guías Interactivas
+### Access Interactive Guides
+
+The toolkit now features a dynamic guide system powered by the comprehensive `.fpd` directory:
+
 ```bash
-fpd-toolkit guide architecture    # Guía de arquitectura
-fpd-toolkit guide testing        # Guía de testing
-fpd-toolkit guide state-mgmt     # Gestión de estado
-fpd-toolkit guide performance    # Optimización
+# List all available guides organized by category
+fpd-toolkit guide --list
+
+# Access specific guides using hierarchical paths
+fpd-toolkit guide best-practices architecture-structure
+fpd-toolkit guide development-guide fundamentals
+fpd-toolkit guide development-guide testing-and-quality-assurance
+fpd-toolkit guide best-practices performance-and-optimization
+fpd-toolkit guide agents agents-base
+
+# View all guides
+fpd-toolkit guide --all
+
+# Copy guides to local directory for offline access
+fpd-toolkit guide --copy --output ./documentation
 ```
 
-### Ver Ejemplos de Código
+### View Code Examples
 ```bash
-fpd-toolkit example widget       # Ejemplos de widgets
-fpd-toolkit example state        # Manejo de estado
-fpd-toolkit example animation    # Animaciones
-fpd-toolkit example testing      # Testing avanzado
+fpd-toolkit example widget       # Widget examples
+fpd-toolkit example state        # State management
+fpd-toolkit example animation    # Animations
+fpd-toolkit example testing      # Advanced testing
 ```
 
-## 🎯 Comandos Disponibles
+## 🎯 Available Commands
 
-| Comando | Descripción | Ejemplo |
+| Command | Description | Example |
 |---------|-------------|---------|
-| `create` | Generar nuevo paquete/app/plugin | `fpd-toolkit create package mi_lib` |
-| `validate` | Validar paquete para pub.dev | `fpd-toolkit validate mi_lib` |
-| `guide` | Guías interactivas de desarrollo | `fpd-toolkit guide architecture` |
-| `example` | Ejemplos de código y patrones | `fpd-toolkit example widget` |
-| `template` | Gestionar templates personalizados | `fpd-toolkit template list` |
-| `init` | Inicializar proyecto existente | `fpd-toolkit init` |
+| `create` | Generate new package/app/plugin | `fpd-toolkit create package my_lib` |
+| `validate` | Validate package for pub.dev | `fpd-toolkit validate my_lib` |
+| `guide` | Interactive development guides from .fpd | `fpd-toolkit guide best-practices architecture-structure` |
+| `example` | Code examples and patterns | `fpd-toolkit example widget` |
+| `template` | Manage custom templates | `fpd-toolkit template list` |
+| `init` | Initialize existing project | `fpd-toolkit init` |
 
-## 📁 Estructura de Proyecto Generada
+## 📁 Generated Project Structure
 
 ```
-mi_paquete/
+my_package/
 ├── lib/
-│   ├── mi_paquete.dart          # Punto de entrada
+│   ├── my_package.dart          # Entry point
 │   └── src/
-│       └── mi_paquete_base.dart # Lógica principal
+│       └── my_package_base.dart # Main logic
 ├── test/
-│   └── mi_paquete_test.dart     # Tests
-├── example/                     # Ejemplos de uso
-├── pubspec.yaml                 # Configuración optimizada
-├── README.md                    # Documentación completa
-├── CHANGELOG.md                 # Historial de cambios
-├── LICENSE                      # Licencia MIT
-└── analysis_options.yaml       # Análisis de código
+│   └── my_package_test.dart     # Tests
+├── example/                     # Usage examples
+├── pubspec.yaml                 # Optimized configuration
+├── README.md                    # Complete documentation
+├── CHANGELOG.md                 # Change history
+├── LICENSE                      # MIT License
+└── analysis_options.yaml       # Code analysis
 ```
 
-## 🏆 Scoring pub.dev
+## 🏆 pub.dev Scoring
 
-Los paquetes generados alcanzan **125+ puntos** en pub.dev:
+Generated packages achieve **125+ points** on pub.dev:
 
-- ✅ **Conventions** (30/30) - Nomenclatura y estructura
-- ✅ **Documentation** (30/30) - README, API docs, ejemplos
-- ✅ **Platforms** (20/20) - Soporte multiplataforma
-- ✅ **Analysis** (30/30) - Análisis de código limpio
-- ✅ **Dependencies** (15/20) - Dependencias actualizadas
+- ✅ **Conventions** (30/30) - Naming and structure
+- ✅ **Documentation** (30/30) - README, API docs, examples
+- ✅ **Platforms** (20/20) - Cross-platform support
+- ✅ **Analysis** (30/30) - Clean code analysis
+- ✅ **Dependencies** (15/20) - Updated dependencies
 
-## 📚 Documentación Completa
+## 📚 Comprehensive Documentation
 
-### Guías Incluidas
-- **[Guía de Desarrollo](docs/GUIA_DESARROLLO_FLUTTER_DART.md)** - Desarrollo completo Flutter/Dart
-- **[Mejores Prácticas](docs/MEJORES_PRACTICAS_FLUTTER.md)** - Patrones y convenciones
-- **[Script Original](scripts/flutter_package_generator.dart)** - Generador de referencia
+### 🔍 The .fpd Directory - Your Development Knowledge Base
 
-### Temas Cubiertos
-- 🏗️ **Arquitectura** - Clean Architecture, MVVM, BLoC
+FPD Toolkit includes a comprehensive `.fpd` directory containing professional Flutter/Dart development guidelines:
+
+- **📁 agents/** - AI agent configuration and development rules
+- **📁 best-practices/** - Architecture, security, testing, performance optimization
+- **📁 development-guide/** - Complete development lifecycle from setup to publishing
+
+#### Available Guides by Category:
+
+**🤖 Agents (1 guide):**
+- `agents-base` - Core development rules including English-only code standards
+
+**🏗️ Best Practices (8 guides):**
+- `architecture-structure` - Clean Architecture and project organization
+- `code-maintenance` - Long-term code maintenance strategies
+- `multiplatform-development` - Cross-platform development best practices
+- `performance-and-optimization` - Performance optimization techniques
+- `quality-checklist` - Quality assurance standards
+- `security-and-privacy` - Security and privacy best practices
+- `state-management` - State management patterns (BLoC, Provider, Riverpod)
+- `strategic-testing` - Comprehensive testing strategies
+- `ui-ux-widgets` - UI/UX design and widget guidelines
+
+**📖 Development Guide (10 guides):**
+- `additional-resources` - Curated resources and tools
+- `best-practices` - Development best practices overview
+- `environment-setup` - Development environment configuration
+- `final-checklist` - Pre-release quality checklist
+- `fundamentals` - Core Flutter/Dart principles
+- `maintenance-and-versioning` - Project maintenance and versioning
+- `project-structure` - Recommended project organization
+- `publishing-on-pub-dev` - Complete pub.dev publishing guide
+- `testing-and-quality-assurance` - Testing methodologies
+- `tools-and-scripts` - Development automation tools
+
+### Topics Covered
+- 🏗️ **Architecture** - Clean Architecture, MVVM, BLoC
 - 🎨 **UI/UX** - Material Design, Cupertino, Responsive
-- 🔧 **Estado** - Provider, Riverpod, BLoC, GetX
+- 🔧 **State** - Provider, Riverpod, BLoC, GetX
 - 🧪 **Testing** - Unit, Widget, Integration, Golden
-- ⚡ **Performance** - Optimización, Profiling, Memory
-- 🔒 **Seguridad** - Encriptación, Autenticación, Permisos
-- 🌐 **Internacionalización** - i18n, l10n, Localización
-- 📱 **Plataformas** - Android, iOS, Web, Desktop
+- ⚡ **Performance** - Optimization, Profiling, Memory
+- 🔒 **Security** - Encryption, Authentication, Permissions
+- 🌐 **Internationalization** - i18n, l10n, Localization
+- 📱 **Platforms** - Android, iOS, Web, Desktop
 
-## 🔧 Configuración Avanzada
+## 🔧 Advanced Configuration
 
-### Variables de Entorno
+### Environment Variables
 ```bash
-export FLUTTER_DEV_AUTHOR="Tu Nombre"
-export FLUTTER_DEV_ORG="com.tuorg"
+export FLUTTER_DEV_AUTHOR="Your Name"
+export FLUTTER_DEV_ORG="com.yourorg"
 export FLUTTER_DEV_TEMPLATE_DIR="$HOME/flutter_templates"
 ```
 
-### Archivo de Configuración
+### Configuration File
 ```yaml
 # ~/.flutter_dev_config.yaml
-default_author: "Tu Nombre"
-default_organization: "com.tuorg"
+default_author: "Your Name"
+default_organization: "com.yourorg"
 default_license: "MIT"
 templates_dir: "~/flutter_templates"
 ```
 
-## 🤝 Ejemplos de Uso
+## 🤝 Usage Examples
 
-### Caso 1: Startup Rápida
+### Case 1: Rapid Startup
 ```bash
-# Crear MVP completo
-fpd-toolkit create app startup_mvp --description "MVP para startup"
+# Create complete MVP
+fpd-toolkit create app startup_mvp --description "MVP for startup"
 cd startup_mvp
-fpd-toolkit guide architecture
+fpd-toolkit guide best-practices architecture-structure
 flutter run
 ```
 
-### Caso 2: Librería Empresarial
+### Case 2: Enterprise Library
 ```bash
-# Crear paquete corporativo
-fpd-toolkit create package empresa_utils --description "Utilidades corporativas"
-fpd-toolkit validate empresa_utils
+# Create corporate package
+fpd-toolkit create package company_utils --description "Corporate utilities"
+fpd-toolkit validate company_utils
 dart pub publish --dry-run
 ```
 
-### Caso 3: Plugin Multiplataforma
+### Case 3: Cross-Platform Plugin
 ```bash
-# Plugin para todas las plataformas
+# Plugin for all platforms
 fpd-toolkit create plugin super_plugin \
   --platforms android,ios,web,windows,macos,linux \
-  --description "Plugin universal increíble"
+  --description "Universal awesome plugin"
 ```
 
-## 🎯 Casos de Uso
+## 🎯 Use Cases
 
-### 👨‍💻 Desarrolladores
-- Generar paquetes con estructura profesional
-- Validar antes de publicar en pub.dev
-- Aprender mejores prácticas interactivamente
+### 👨‍💻 Developers
+- Generate packages with professional structure
+- Validate before publishing to pub.dev
+- Learn best practices interactively
 
-### 🏢 Empresas
-- Estandarizar estructura de proyectos
-- Acelerar desarrollo de MVPs
-- Mantener calidad de código consistente
+### 🏢 Companies
+- Standardize project structure
+- Accelerate MVP development
+- Maintain consistent code quality
 
-### 🎓 Educación
-- Enseñar buenas prácticas Flutter/Dart
-- Ejemplos prácticos listos para usar
-- Guías paso a paso interactivas
+### 🎓 Education
+- Teach Flutter/Dart best practices
+- Ready-to-use practical examples
+- Interactive step-by-step guides
 
-## 🔄 Flujo de Trabajo Recomendado
+## 🔄 Recommended Workflow
 
-1. **Planificación**
+1. **Planning**
    ```bash
-   fpd-toolkit guide architecture
+   fpd-toolkit guide best-practices architecture-structure
    ```
 
-2. **Generación**
+2. **Generation**
    ```bash
-   fpd-toolkit create package mi_lib --description "Mi librería"
+   fpd-toolkit create package my_lib --description "My library"
    ```
 
-3. **Validación**
+3. **Validation**
    ```bash
-   fpd-toolkit validate mi_lib
+   fpd-toolkit validate my_lib
    ```
 
-4. **Desarrollo**
+4. **Development**
    ```bash
-   cd mi_lib
-   fpd-toolkit guide testing
+   cd my_lib
+   fpd-toolkit guide development-guide testing-and-quality-assurance
    fpd-toolkit example widget
    ```
 
-5. **Publicación**
+5. **Publishing**
    ```bash
    dart pub publish --dry-run
    dart pub publish
    ```
 
-## 🚀 Desarrollo Local
+## 🚀 Local Development
 
-### Clonar y Ejecutar
+### Clone and Run
 ```bash
 git clone https://github.com/flutterpilot/fpd_toolkit.git
 cd fpd_toolkit
@@ -232,41 +277,41 @@ dart pub get
 dart run bin/fpd_toolkit.dart --help
 ```
 
-### Ejecutar Comandos
+### Execute Commands
 ```bash
 dart run bin/fpd_toolkit.dart create package test_pkg --description "Test package"
 dart run bin/fpd_toolkit.dart validate test_pkg
 dart run bin/fpd_toolkit.dart guide --help
 ```
 
-### Modo Verbose
+### Verbose Mode
 ```bash
 dart run bin/fpd_toolkit.dart --verbose create package debug_pkg
 ```
 
 ## 🧪 Testing
 
-### Ejecutar Tests
+### Run Tests
 ```bash
 dart test
 ```
 
-### Testing con Coverage
+### Testing with Coverage
 ```bash
 dart test --coverage=coverage
 genhtml coverage/lcov.info -o coverage/html
 ```
 
-### Testing de Comandos
+### Command Testing
 ```bash
-dart run bin/fpd_toolkit.dart --verbose [comando]
+dart run bin/fpd_toolkit.dart --verbose [command]
 ```
 
-## 📊 Métricas y Performance
+## 📊 Metrics and Performance
 
 ### Benchmarks
 ```bash
-# Medir tiempo de generación
+# Measure generation time
 time dart run bin/fpd_toolkit.dart create package perf_test
 ```
 
@@ -304,16 +349,16 @@ flutter test
 dart test
 ```
 
-## 🤝 Contribuir
+## 🤝 Contributing
 
-### Setup de Desarrollo
+### Development Setup
 ```bash
 git clone https://github.com/flutterpilot/fpd_toolkit.git
 cd fpd_toolkit
 dart pub get
 ```
 
-### Ejecutar Tests de Integración
+### Run Integration Tests
 ```bash
 dart run "$OLDPWD/bin/fpd_toolkit.dart" create package integration_package
 dart run "$OLDPWD/bin/fpd_toolkit.dart" create app integration_app
@@ -321,28 +366,28 @@ dart run "$OLDPWD/bin/fpd_toolkit.dart" create plugin integration_plugin --platf
 dart run "$OLDPWD/bin/fpd_toolkit.dart" validate integration_package
 ```
 
-### Verificar Generación
+### Verify Generation
 ```bash
-# Crear paquete de prueba
+# Create test package
 dart run bin/fpd_toolkit.dart create package test_package --description "Test package"
 
-# Validar estructura
+# Validate structure
 dart run bin/fpd_toolkit.dart validate test_package
 
-# Verificar archivos generados
+# Verify generated files
 ls -la test_package/
 cat test_package/pubspec.yaml
 cat test_package/README.md
 ```
 
-### Testing de Templates
+### Template Testing
 ```bash
-# Probar diferentes tipos
+# Test different types
 dart run bin/fpd_toolkit.dart create app test_app --description "Test app"
 dart run bin/fpd_toolkit.dart create plugin test_plugin --platforms android,ios --description "Test plugin"
 dart run bin/fpd_toolkit.dart create package test_package --description "Test package"
 
-# Validar todos
+# Validate all
 dart run bin/fpd_toolkit.dart validate test_app
 dart run bin/fpd_toolkit.dart validate test_plugin
 dart run bin/fpd_toolkit.dart validate test_package
@@ -350,7 +395,7 @@ dart run bin/fpd_toolkit.dart validate test_package
 
 ### Performance Testing
 ```bash
-# Medir tiempo de generación
+# Measure generation time
 time dart run bin/fpd_toolkit.dart create package perf_test
 time dart run bin/fpd_toolkit.dart create app perf_app
 time dart run bin/fpd_toolkit.dart create plugin perf_plugin --platforms android,ios
@@ -361,15 +406,15 @@ dart run --observe bin/fpd_toolkit.dart create package memory_test
 
 ### Cross-Platform Validation
 ```bash
-# Crear paquete multiplataforma
+# Create cross-platform package
 dart run bin/fpd_toolkit.dart create plugin cross_platform_plugin \
   --platforms android,ios,web,windows,linux,macos \
   --description "Cross-platform plugin"
 
-# Validar estructura
+# Validate structure
 dart run bin/fpd_toolkit.dart validate cross_platform_plugin
 
-# Verificar archivos de plataforma
+# Verify platform files
 ls -la cross_platform_plugin/android/
 ls -la cross_platform_plugin/ios/
 ls -la cross_platform_plugin/lib/src/
@@ -377,25 +422,25 @@ ls -la cross_platform_plugin/lib/src/
 
 ### Documentation Testing
 ```bash
-# Verificar generación de README
+# Verify README generation
 dart run bin/fpd_toolkit.dart create package doc_test --description "Documentation test"
 cat doc_test/README.md
 
-# Verificar generación de CHANGELOG
+# Verify CHANGELOG generation
 cat doc_test/CHANGELOG.md
 
-# Verificar generación de LICENSE
+# Verify LICENSE generation
 cat doc_test/LICENSE
 ```
 
 ### Error Handling Testing
 ```bash
-# Probar nombres inválidos
+# Test invalid names
 dart run bin/fpd_toolkit.dart create package invalid-name
 dart run bin/fpd_toolkit.dart create package 123package
 dart run bin/fpd_toolkit.dart create package package@test
 
-# Probar directorios existentes
+# Test existing directories
 mkdir existing_dir
 dart run bin/fpd_toolkit.dart create package existing_dir
 dart run bin/fpd_toolkit.dart create package existing_dir --force
@@ -403,113 +448,113 @@ dart run bin/fpd_toolkit.dart create package existing_dir --force
 
 ### Template Customization Testing
 ```bash
-# Crear template personalizado
+# Create custom template
 mkdir -p ~/custom_templates/package_template
 cp -r test_package/* ~/custom_templates/package_template/
 
-# Usar template personalizado
+# Use custom template
 dart run bin/fpd_toolkit.dart create package custom_test --template ~/custom_templates/package_template
 ```
 
 ## 📈 Roadmap
 
-### Próximas Características
-- [ ] **Templates Avanzados** - Templates con configuración compleja
-- [ ] **Validación Automática** - CI/CD integration automática
-- [ ] **Plugin Marketplace** - Repositorio de templates comunitarios
-- [ ] **IDE Integration** - Extensiones para VS Code, Android Studio
-- [ ] **Performance Profiling** - Análisis automático de performance
-- [ ] **Security Scanning** - Detección automática de vulnerabilidades
+### Upcoming Features
+- [ ] **Advanced Templates** - Templates with complex configuration
+- [ ] **Automatic Validation** - Automatic CI/CD integration
+- [ ] **Plugin Marketplace** - Community template repository
+- [ ] **IDE Integration** - VS Code, Android Studio extensions
+- [ ] **Performance Profiling** - Automatic performance analysis
+- [ ] **Security Scanning** - Automatic vulnerability detection
 
-### Mejoras Planificadas
-- [ ] **Multi-language Support** - Soporte para múltiples idiomas
-- [ ] **Custom Validators** - Validadores personalizables
-- [ ] **Template Inheritance** - Herencia de templates
-- [ ] **Plugin Architecture** - Sistema de plugins extensible
-- [ ] **Cloud Integration** - Templates desde la nube
-- [ ] **Collaboration Features** - Trabajo colaborativo en templates
+### Planned Improvements
+- [ ] **Multi-language Support** - Support for multiple languages
+- [ ] **Custom Validators** - Customizable validators
+- [ ] **Template Inheritance** - Template inheritance system
+- [ ] **Plugin Architecture** - Extensible plugin system
+- [ ] **Cloud Integration** - Cloud-based templates
+- [ ] **Collaboration Features** - Collaborative template work
 
 ## 🐛 Troubleshooting
 
-### Problemas Comunes
+### Common Issues
 
 #### Error: "Command not found"
 ```bash
-# Verificar instalación
+# Verify installation
 dart pub global list | grep fpd_toolkit
 
-# Reinstalar
+# Reinstall
 dart pub global deactivate fpd_toolkit
 dart pub global activate fpd_toolkit
 ```
 
 #### Error: "Permission denied"
 ```bash
-# Verificar permisos
+# Check permissions
 ls -la ~/.pub-cache/bin/
 
-# Corregir permisos
+# Fix permissions
 chmod +x ~/.pub-cache/bin/fpd-toolkit
 ```
 
 #### Error: "Template not found"
 ```bash
-# Verificar templates disponibles
+# Check available templates
 fpd-toolkit template list
 
-# Usar template por defecto
-fpd-toolkit create package mi_paquete --template default
+# Use default template
+fpd-toolkit create package my_package --template default
 ```
 
 #### Error: "Invalid package name"
 ```bash
-# Usar snake_case
-fpd-toolkit create package mi_paquete_valido
+# Use snake_case
+fpd-toolkit create package my_valid_package
 
-# Evitar caracteres especiales
-# ❌ mi-paquete, mi_paquete@test, 123paquete
-# ✅ mi_paquete, mi_paquete_valido, paquete_test
+# Avoid special characters
+# ❌ my-package, my_package@test, 123package
+# ✅ my_package, my_valid_package, package_test
 ```
 
-## 📞 Soporte
+## 📞 Support
 
-### Recursos de Ayuda
-- **Documentación**: [docs/](docs/)
+### Help Resources
+- **Documentation**: [docs/](docs/)
 - **Issues**: [GitHub Issues](https://github.com/flutterpilot/fpd_toolkit/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/flutterpilot/fpd_toolkit/discussions)
 
-### Comunidad
+### Community
 - **Discord**: [FlutterPilot Community](https://discord.gg/flutterpilot)
 - **Twitter**: [@flutterpilot](https://twitter.com/flutterpilot)
 - **Blog**: [flutterpilot.dev](https://flutterpilot.dev)
 
-## 📄 Licencia
+## 📄 License
 
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 Autor
+## 👨‍💻 Author
 
 **Sebastián Larrauri** - [dash@flutterpilot.dev](mailto:dash@flutterpilot.dev)
 
 ---
 
-⭐ Si FPD Toolkit te ha sido útil, ¡considera darle una estrella en GitHub!
+⭐ If FPD Toolkit has been useful to you, consider giving it a star on GitHub!
 
 ## 🚀 Quick Start
 
 ```bash
-# Instalar
+# Install
 dart pub global activate fpd_toolkit
 
-# Crear tu primer paquete
-fpd-toolkit create package mi_paquete --description "Mi primer paquete"
+# Create your first package
+fpd-toolkit create package my_package --description "My first package"
 
-# Validar
-fpd-toolkit validate mi_paquete
+# Validate
+fpd-toolkit validate my_package
 
-# ¡Listo para publicar!
-cd mi_paquete
+# Ready to publish!
+cd my_package
 dart pub publish --dry-run
 ```
 
-¡Comienza a crear paquetes de alta calidad hoy mismo! 🎉
+Start creating high-quality packages today! 🎉

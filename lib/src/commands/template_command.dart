@@ -1,18 +1,24 @@
 import 'package:args/args.dart';
 import 'base_command.dart';
 import '../utils/logger.dart';
+import '../utils/interactive_prompt.dart';
 
-/// Comando para gestionar templates de proyecto
+/// Command to manage project templates
 class TemplateCommand extends Command {
   late final ArgParser _argParser;
 
   TemplateCommand() {
     _argParser = ArgParser()
       ..addFlag(
+        'non-interactive',
+        negatable: false,
+        help: 'Run in non-interactive mode',
+      )
+      ..addFlag(
         'help',
         abbr: 'h',
         negatable: false,
-        help: 'Muestra ayuda para este comando',
+        help: 'Show help for this command',
       );
   }
 
@@ -20,7 +26,7 @@ class TemplateCommand extends Command {
   String get name => 'template';
 
   @override
-  String get description => 'Gestiona templates de proyecto';
+  String get description => 'Manage project templates';
 
   @override
   ArgParser get argParser => _argParser;
@@ -32,58 +38,89 @@ class TemplateCommand extends Command {
       return;
     }
 
+    final isNonInteractive = argResults['non-interactive'] as bool;
     final args = argResults.rest;
-    if (args.isEmpty) {
+    
+    String? subcommand;
+    
+    if (args.isNotEmpty) {
+      subcommand = args[0];
+    } else if (!isNonInteractive) {
+      subcommand = InteractivePrompt.promptSelect(
+        question: 'What would you like to do with templates?',
+        options: ['list', 'show'],
+        defaultValue: 'list',
+      );
+    } else {
       showHelp();
       return;
     }
-
-    final subcommand = args[0];
     
     switch (subcommand) {
       case 'list':
         _listTemplates();
         break;
       case 'show':
-        if (args.length < 2) {
-          Logger.error('❌ Uso: fpd-toolkit template show <nombre>');
+        String? templateName;
+        if (args.length >= 2) {
+          templateName = args[1];
+        } else if (!isNonInteractive) {
+          templateName = _promptForTemplate();
+        } else {
+          Logger.error('❌ Usage: fpd-toolkit template show <name>');
           return;
         }
-        _showTemplate(args[1]);
+        
+        if (templateName != null) {
+          _showTemplate(templateName);
+        }
         break;
       default:
-        Logger.error('❌ Subcomando desconocido: $subcommand');
+        Logger.error('❌ Unknown subcommand: $subcommand');
         showHelp();
     }
   }
 
+  String? _promptForTemplate() {
+    final allTemplates = [
+      'clean', 'mvvm', 'simple', 'ecommerce', 'social', 'productivity', 'finance',
+      'platform', 'federated', 'ffi', 'utils', 'ui', 'data'
+    ];
+    
+    return InteractivePrompt.promptSelect(
+      question: 'Which template would you like to see details for?',
+      options: allTemplates,
+      defaultValue: 'clean',
+    );
+  }
+
   void _listTemplates() {
-    Logger.info('📋 Templates disponibles:\n');
+    Logger.info('📋 Available templates:\n');
     
-    Logger.info('🏗️ Arquitecturas:');
-    Logger.info('  clean           - Clean Architecture con BLoC');
-    Logger.info('  mvvm            - MVVM con Provider');
-    Logger.info('  simple          - Arquitectura simple para apps pequeñas');
+    Logger.info('🏗️ Architectures:');
+    Logger.info('  clean           - Clean Architecture with BLoC');
+    Logger.info('  mvvm            - MVVM with Provider');
+    Logger.info('  simple          - Simple architecture for small apps');
     
-    Logger.info('\n📱 Tipos de aplicación:');
-    Logger.info('  ecommerce       - App de e-commerce completa');
-    Logger.info('  social          - App de redes sociales');
-    Logger.info('  productivity    - App de productividad');
-    Logger.info('  finance         - App financiera');
+    Logger.info('\n📱 Application types:');
+    Logger.info('  ecommerce       - Complete e-commerce app');
+    Logger.info('  social          - Social media app');
+    Logger.info('  productivity    - Productivity app');
+    Logger.info('  finance         - Financial app');
     
     Logger.info('\n🔌 Plugins:');
-    Logger.info('  platform        - Plugin multiplataforma');
-    Logger.info('  federated       - Plugin federado');
-    Logger.info('  ffi             - Plugin con FFI');
+    Logger.info('  platform        - Multi-platform plugin');
+    Logger.info('  federated       - Federated plugin');
+    Logger.info('  ffi             - Plugin with FFI');
     
-    Logger.info('\n📦 Paquetes:');
-    Logger.info('  utils           - Paquete de utilidades');
-    Logger.info('  ui              - Paquete de componentes UI');
-    Logger.info('  data            - Paquete de modelos de datos');
+    Logger.info('\n📦 Packages:');
+    Logger.info('  utils           - Utilities package');
+    Logger.info('  ui              - UI components package');
+    Logger.info('  data            - Data models package');
 
-    Logger.info('\nUso:');
-    Logger.info('  fpd-toolkit template show <nombre>');
-    Logger.info('  fpd-toolkit create <tipo> <nombre> --template <template>');
+    Logger.info('\nUsage:');
+    Logger.info('  fpd-toolkit template show <name>');
+    Logger.info('  fpd-toolkit create <type> <name> --template <template>');
   }
 
   void _showTemplate(String templateName) {
@@ -115,8 +152,8 @@ class TemplateCommand extends Command {
         _showUtilsPackageTemplate();
         break;
       default:
-        Logger.error('❌ Template no encontrado: $templateName');
-        Logger.info('Usa "fpd-toolkit template list" para ver templates disponibles');
+        Logger.error('❌ Template not found: $templateName');
+        Logger.info('Use "fpd-toolkit template list" to see available templates');
     }
   }
 
@@ -441,23 +478,28 @@ Características:
     print('''
 $description
 
-Uso: fpd-toolkit template <subcomando> [argumentos]
+Usage: fpd-toolkit template [subcommand] [arguments]
 
-Subcomandos:
-  list                 Lista todos los templates disponibles
-  show <nombre>        Muestra detalles de un template específico
+Subcommands (optional in interactive mode):
+  list                 List all available templates
+  show <name>          Show details of a specific template
 
-Ejemplos:
-  fpd-toolkit template list
-  fpd-toolkit template show clean
-  fpd-toolkit template show ecommerce
+Interactive Examples:
+  fpd-toolkit template                    # Interactive mode - asks what to do
+  fpd-toolkit template show               # Interactive mode - asks which template
+  fpd-toolkit template list               # Lists all templates
 
-Para usar un template:
-  fpd-toolkit create app mi_app --template clean
-  fpd-toolkit create plugin mi_plugin --template platform
+Non-Interactive Examples:
+  fpd-toolkit template list --non-interactive
+  fpd-toolkit template show clean --non-interactive
+  fpd-toolkit template show ecommerce --non-interactive
 
-Templates disponibles:
-  📱 Apps: clean, mvvm, simple, ecommerce, social
+To use a template:
+  fpd-toolkit create app my_app --template clean
+  fpd-toolkit create plugin my_plugin --template platform
+
+Available templates:
+  📱 Apps: clean, mvvm, simple, ecommerce, social, productivity, finance
   🔌 Plugins: platform, federated, ffi
   📦 Packages: utils, ui, data
 ''');

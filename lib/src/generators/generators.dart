@@ -1,4 +1,4 @@
-/// Exporta todos los generadores
-library generators;
+/// Exports all generators
+library;
 
 export 'package_generator.dart';

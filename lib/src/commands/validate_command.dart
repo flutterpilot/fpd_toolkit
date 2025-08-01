@@ -3,8 +3,9 @@ import 'package:args/args.dart';
 import 'package:yaml/yaml.dart';
 import 'base_command.dart';
 import '../utils/logger.dart';
+import '../utils/interactive_prompt.dart';
 
-/// Comando para validar paquetes existentes
+/// Command to validate existing packages
 class ValidateCommand extends Command {
   late final ArgParser _argParser;
 
@@ -23,10 +24,15 @@ class ValidateCommand extends Command {
         help: 'Intenta arreglar problemas automáticamente',
       )
       ..addFlag(
+        'non-interactive',
+        negatable: false,
+        help: 'Run in non-interactive mode',
+      )
+      ..addFlag(
         'help',
         abbr: 'h',
         negatable: false,
-        help: 'Muestra ayuda para este comando',
+        help: 'Show help for this command',
       );
   }
 
@@ -34,7 +40,7 @@ class ValidateCommand extends Command {
   String get name => 'validate';
 
   @override
-  String get description => 'Valida un paquete Flutter/Dart existente';
+  String get description => 'Validate an existing Flutter/Dart package';
 
   @override
   ArgParser get argParser => _argParser;
@@ -46,23 +52,58 @@ class ValidateCommand extends Command {
       return;
     }
 
+    final isNonInteractive = argResults['non-interactive'] as bool;
     final args = argResults.rest;
-    String packagePath = '.';
+    String packagePath;
     
     if (args.isNotEmpty) {
       packagePath = args[0];
+    } else {
+      if (isNonInteractive) {
+        packagePath = '.';
+      } else {
+        packagePath = InteractivePrompt.promptText(
+          question: 'Package directory to validate',
+          defaultValue: '.',
+          required: true,
+        ) ?? '.';
+      }
     }
 
     final packageDir = Directory(packagePath);
     if (!packageDir.existsSync()) {
-      Logger.error('❌ Directorio no encontrado: $packagePath');
-      return;
+      if (isNonInteractive) {
+        Logger.error('❌ Directory not found: $packagePath');
+        return;
+      }
+      
+      Logger.error('❌ Directory not found: $packagePath');
+      final shouldContinue = InteractivePrompt.promptConfirm(
+        question: 'Would you like to select a different directory?',
+        defaultValue: true,
+      );
+      
+      if (!shouldContinue) {
+        return;
+      }
+      
+      packagePath = InteractivePrompt.promptText(
+        question: 'Package directory to validate',
+        defaultValue: '.',
+        required: true,
+      ) ?? '.';
+      
+      final newPackageDir = Directory(packagePath);
+      if (!newPackageDir.existsSync()) {
+        Logger.error('❌ Directory not found: $packagePath');
+        return;
+      }
     }
 
     final strict = argResults['strict'] as bool;
     final fix = argResults['fix'] as bool;
 
-    Logger.info('🔍 Validando paquete en: ${packageDir.path}');
+    Logger.info('🔍 Validating package in: ${packageDir.path}');
     
     final issues = <ValidationIssue>[];
     
@@ -90,17 +131,17 @@ class ValidateCommand extends Command {
       if (!file.existsSync()) {
         issues.add(ValidationIssue(
           type: IssueType.error,
-          message: 'Archivo faltante: $fileName',
+          message: 'Missing file: $fileName',
           file: fileName,
           fixable: fix && fileName != 'pubspec.yaml',
         ));
         
         if (fix && fileName != 'pubspec.yaml') {
           await _createMissingFile(packageDir, fileName);
-          Logger.info('🔧 Creado archivo faltante: $fileName');
+          Logger.info('🔧 Created missing file: $fileName');
         }
       } else {
-        Logger.success('✅ $fileName encontrado');
+        Logger.success('✅ $fileName found');
       }
     }
   }
@@ -135,7 +176,7 @@ class ValidateCommand extends Command {
         if (!_isValidSemanticVersion(version)) {
           issues.add(ValidationIssue(
             type: IssueType.warning,
-            message: 'Versión no sigue semantic versioning: $version',
+            message: 'Version does not follow semantic versioning: $version',
             file: 'pubspec.yaml',
           ));
         }
@@ -143,19 +184,19 @@ class ValidateCommand extends Command {
 
       // Validar publish_to
       if (!yaml.containsKey('publish_to') || yaml['publish_to'] != 'none') {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.warning,
-          message: 'Considera usar "publish_to: none" para evitar publicación accidental',
+          message: 'Consider using "publish_to: none" to avoid accidental publication',
           file: 'pubspec.yaml',
         ));
       }
 
-      Logger.success('✅ pubspec.yaml validado');
+      Logger.success('✅ pubspec.yaml validated');
 
     } catch (e) {
       issues.add(ValidationIssue(
         type: IssueType.error,
-        message: 'Error leyendo pubspec.yaml: $e',
+        message: 'Error reading pubspec.yaml: $e',
         file: 'pubspec.yaml',
       ));
     }
@@ -167,14 +208,14 @@ class ValidateCommand extends Command {
     if (!libDir.existsSync()) {
       issues.add(ValidationIssue(
         type: IssueType.error,
-        message: 'Directorio faltante: lib/',
+        message: 'Missing directory: lib/',
         file: 'lib/',
         fixable: fix,
       ));
       
       if (fix) {
         await libDir.create();
-        Logger.info('🔧 Creado directorio: lib/');
+        Logger.info('🔧 Created directory: lib/');
       }
     } else {
       // Buscar archivo principal
@@ -191,17 +232,17 @@ class ValidateCommand extends Command {
             if (!mainFile.existsSync()) {
               issues.add(ValidationIssue(
                 type: IssueType.error,
-                message: 'Archivo principal faltante: lib/$packageName.dart',
+                message: 'Missing main file: lib/$packageName.dart',
                 file: 'lib/$packageName.dart',
                 fixable: fix,
               ));
               
               if (fix) {
                 await _createMainLibraryFile(packageDir, packageName);
-                Logger.info('🔧 Creado archivo principal: lib/$packageName.dart');
+                Logger.info('🔧 Created main file: lib/$packageName.dart');
               }
             } else {
-              Logger.success('✅ Archivo principal encontrado: lib/$packageName.dart');
+              Logger.success('✅ Main file found: lib/$packageName.dart');
             }
           }
         } catch (e) {
@@ -215,7 +256,7 @@ class ValidateCommand extends Command {
     if (!testDir.existsSync()) {
       issues.add(ValidationIssue(
         type: IssueType.warning,
-        message: 'Directorio recomendado faltante: test/',
+        message: 'Recommended directory missing: test/',
         file: 'test/',
         fixable: fix,
       ));
@@ -223,13 +264,13 @@ class ValidateCommand extends Command {
       if (fix) {
         await testDir.create();
         await _createBasicTestFile(packageDir);
-        Logger.info('🔧 Creado directorio: test/ con test básico');
+        Logger.info('🔧 Created directory: test/ with basic test');
       }
     } else {
-      Logger.success('✅ Directorio test/ encontrado');
+      Logger.success('✅ Directory test/ found');
     }
 
-    Logger.success('✅ Estructura de directorios validada');
+    Logger.success('✅ Directory structure validated');
   }
 
   Future<void> _validateDocumentation(Directory packageDir, List<ValidationIssue> issues, bool strict, bool fix) async {
@@ -239,25 +280,25 @@ class ValidateCommand extends Command {
       final content = await readmeFile.readAsString();
       
       if (content.length < 100) {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.warning,
-          message: 'README.md muy corto, considera añadir más información',
+          message: 'README.md too short, consider adding more information',
           file: 'README.md',
         ));
       }
       
       if (!content.contains('##') && !content.contains('#')) {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.warning,
-          message: 'README.md sin secciones, considera añadir headers',
+          message: 'README.md without sections, consider adding headers',
           file: 'README.md',
         ));
       }
       
       if (strict && !content.contains('```')) {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.warning,
-          message: 'README.md sin ejemplos de código',
+          message: 'README.md without code examples',
           file: 'README.md',
         ));
       }
@@ -268,14 +309,14 @@ class ValidateCommand extends Command {
     if (!analysisFile.existsSync()) {
       issues.add(ValidationIssue(
         type: IssueType.warning,
-        message: 'Archivo recomendado faltante: analysis_options.yaml',
+        message: 'Recommended file missing: analysis_options.yaml',
         file: 'analysis_options.yaml',
         fixable: fix,
       ));
       
       if (fix) {
         await _createAnalysisOptionsFile(packageDir);
-        Logger.info('🔧 Creado: analysis_options.yaml');
+        Logger.info('🔧 Created: analysis_options.yaml');
       }
     }
   }
@@ -284,7 +325,7 @@ class ValidateCommand extends Command {
     if (!yaml.containsKey(field)) {
       issues.add(ValidationIssue(
         type: required ? IssueType.error : IssueType.warning,
-        message: 'pubspec.yaml: Falta el campo "$field"',
+        message: 'pubspec.yaml: Missing field "$field"',
         file: 'pubspec.yaml',
       ));
     }
@@ -492,14 +533,14 @@ SOFTWARE.
     final warnings = issues.where((i) => i.type == IssueType.warning).length;
 
     if (issues.isEmpty) {
-      Logger.success('\n✅ Paquete válido! Cumple con las mejores prácticas.');
-      Logger.info('\n📋 Recomendaciones adicionales:');
-      Logger.info('   - Ejecuta "dart pub deps" para verificar dependencias');
-      Logger.info('   - Ejecuta "dart analyze" para análisis estático');
-      Logger.info('   - Ejecuta "dart test" para ejecutar pruebas');
-      Logger.info('   - Considera usar "pana" para análisis completo de pub.dev');
+      Logger.success('\n✅ Valid package! Follows best practices.');
+      Logger.info('\n📋 Additional recommendations:');
+      Logger.info('   - Run "dart pub deps" to verify dependencies');
+      Logger.info('   - Run "dart analyze" for static analysis');
+      Logger.info('   - Run "dart test" to execute tests');
+      Logger.info('   - Consider using "pana" for complete pub.dev analysis');
     } else {
-      Logger.error('\n❌ Se encontraron $errors errores y $warnings advertencias:');
+      Logger.error('\n❌ Found $errors errors and $warnings warnings:');
       
       for (final issue in issues) {
         final icon = issue.type == IssueType.error ? '❌' : '⚠️';
@@ -508,15 +549,15 @@ SOFTWARE.
       }
 
       if (issues.any((i) => i.fixable)) {
-        Logger.info('\n🔧 Para auto-corregir problemas:');
+        Logger.info('\n🔧 To auto-fix issues:');
         Logger.info('   fpd-toolkit validate $packagePath --fix');
       }
     }
 
-    Logger.info('\n📈 Puntuación estimada pub.dev:');
+    Logger.info('\n📈 Estimated pub.dev score:');
     final score = _calculateScore(errors, warnings);
     final scoreColor = score >= 100 ? '🟢' : score >= 80 ? '🟡' : '🔴';
-    Logger.info('   $scoreColor $score/130 puntos');
+    Logger.info('   $scoreColor $score/130 points');
   }
 
   int _calculateScore(int errors, int warnings) {
@@ -531,41 +572,44 @@ SOFTWARE.
     print('''
 $description
 
-Uso: fpd-toolkit validate [directorio] [opciones]
+Usage: fpd-toolkit validate [directory] [options]
 
-Argumentos:
-  [directorio]         Directorio del paquete a validar (default: directorio actual)
+Arguments (optional in interactive mode):
+  [directory]          Package directory to validate (default: current directory)
 
-Opciones:
-  -s, --strict         Validación estricta (más estricto que pub.dev)
-  -f, --fix            Intenta arreglar problemas automáticamente
-  -h, --help           Muestra esta ayuda
+Options:
+  -s, --strict         Strict validation (stricter than pub.dev)
+  -f, --fix            Attempt to automatically fix issues
+      --non-interactive Run in non-interactive mode
+  -h, --help           Show this help
 
-Ejemplos:
-  fpd-toolkit validate
-  fpd-toolkit validate ./mi_paquete
-  fpd-toolkit validate ./mi_paquete --strict
-  fpd-toolkit validate ./mi_paquete --fix
+Interactive Examples:
+  fpd-toolkit validate                    # Interactive mode - asks for directory if needed
+  fpd-toolkit validate ./my_package       # Validates specific directory
 
-La validación verifica:
-  ✅ Archivos requeridos (pubspec.yaml, README.md, etc.)
-  ✅ Estructura de directorios
-  ✅ Metadatos en pubspec.yaml
-  ✅ Documentación básica
-  ✅ Configuración de análisis
+Non-Interactive Examples:
+  fpd-toolkit validate --non-interactive  # Validates current directory
+  fpd-toolkit validate ./my_package --strict --fix --non-interactive
 
-Puntuación:
-  🟢 100+ puntos: Excelente calidad
-  🟡 80+ puntos:  Buena calidad  
-  🔴 <80 puntos:  Necesita mejoras
+Validation checks:
+  ✅ Required files (pubspec.yaml, README.md, etc.)
+  ✅ Directory structure
+  ✅ pubspec.yaml metadata
+  ✅ Basic documentation
+  ✅ Analysis configuration
+
+Scoring:
+  🟢 100+ points: Excellent quality
+  🟡 80+ points:  Good quality  
+  🔴 <80 points:  Needs improvements
 ''');
   }
 }
 
-/// Tipos de problemas de validación
+/// Types of validation issues
 enum IssueType { error, warning }
 
-/// Representa un problema encontrado durante la validación
+/// Represents an issue found during validation
 class ValidationIssue {
   const ValidationIssue({
     required this.type,
