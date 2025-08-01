@@ -1,6 +1,6 @@
 name: fpd_toolkit
 description: Professional CLI toolkit for generating high-quality Flutter/Dart packages following industry best practices
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/flutterpilot/fpd_toolkit
 repository: https://github.com/flutterpilot/fpd_toolkit
 issue_tracker: https://github.com/flutterpilot/fpd_toolkit/issues

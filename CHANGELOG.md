@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-08-01
+
 ### Added
 - Example directory with comprehensive usage examples
 - English documentation and comments throughout codebase
@@ -15,10 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated library documentation to English
 - Enhanced package description for better pub.dev compliance
+- Removed unused code methods for cleaner codebase
 
 ### Fixed
 - Fixed YAML frontmatter corruption in guides
 - Updated hardcoded guide references to use dynamic placeholders
+- Resolved all dart analyze warnings and issues
+- Fixed library declarations and code style issues
 
 ## [1.0.0] - 2025-08-01
 

@@ -91,7 +91,7 @@ class CliRunner {
   }
 
   void _showVersion() {
-    Logger.info('🚀 FPD Toolkit v1.0.0');
+    Logger.info('🚀 FPD Toolkit v1.0.1');
     Logger.info('Professional Flutter/Dart package generator with best practices');
   }
 
