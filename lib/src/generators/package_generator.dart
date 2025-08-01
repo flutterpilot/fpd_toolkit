@@ -64,7 +64,6 @@ class PackageGenerator {
       'test',
       'assets/images',
       'assets/fonts',
-      'doc',
     ]);
 
     // Generar archivos
@@ -87,7 +86,7 @@ class PackageGenerator {
     Logger.verbose('Generando plugin Flutter');
     
     // Crear estructura de directorios
-    final dirs = ['lib/src', 'test', 'example', 'doc'];
+    final dirs = ['lib/src', 'test', 'example'];
     
     // Agregar directorios específicos de plataforma
     for (final platform in options.platforms) {
@@ -138,7 +137,6 @@ class PackageGenerator {
       'lib/src',
       'test',
       'example',
-      'doc',
     ]);
 
     // Generar archivos
@@ -484,7 +482,7 @@ analyzer:
     - "**/*.gr.dart"
     - build/**
     - "scripts/**"
-    - "doc/**"
+    - ".fpd/**"
     - "example/**"
     - "test/**"
   errors:
@@ -547,7 +545,7 @@ migrate_working_dir/
 .vscode/
 
 # Flutter/Dart/Pub related
-**/doc/api/
+**/.fpd/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins
@@ -778,46 +776,159 @@ class $className {
 ''';
   }
 
-  /// Genera toda la documentación del proyecto
+  /// Genera toda la documentación del proyecto copiando la estructura .fpd/
   Future<void> _generateProjectDocumentation(Directory outputDir, PackageOptions options) async {
     Logger.verbose('Generando documentación del proyecto');
     
-    // Guía de desarrollo Flutter/Dart
-    await _generateDevelopmentGuide(outputDir, options);
+    // Copiar estructura .fpd/ dinámicamente
+    await _copyFpdStructure(outputDir, options);
     
-    // Mejores prácticas
-    await _generateBestPracticesGuide(outputDir, options);
-    
-    // Checklists de desarrollo
-    await _generateDevelopmentChecklists(outputDir, options);
-    
-    // CONTRIBUTING.md
+    // CONTRIBUTING.md (permanece en la raíz)
     await _generateContributingGuide(outputDir, options);
   }
 
-  Future<void> _generateDevelopmentGuide(Directory outputDir, PackageOptions options) async {
-    final content = _getDevelopmentGuideContent(options);
-    await FileUtils.writeStringToFile('${outputDir.path}/doc/DEVELOPMENT_GUIDE.md', content);
+  /// Copia dinámicamente la estructura .fpd/ desde el directorio actual del fpd_toolkit
+  Future<void> _copyFpdStructure(Directory outputDir, PackageOptions options) async {
+    // Buscar el directorio .fpd del fpd_toolkit
+    final currentDir = Directory.current;
+    final fpdSourceDir = Directory('${currentDir.path}/.fpd');
+    
+    if (!fpdSourceDir.existsSync()) {
+      Logger.verbose('No se encontró directorio .fpd fuente, creando estructura básica');
+      await _createBasicFpdStructure(outputDir, options);
+      return;
+    }
+
+    final fpdTargetDir = Directory('${outputDir.path}/.fpd');
+    await fpdTargetDir.create(recursive: true);
+
+    // Copiar recursivamente la estructura
+    await _copyFpdDirectory(fpdSourceDir, fpdTargetDir, options);
   }
 
-  Future<void> _generateBestPracticesGuide(Directory outputDir, PackageOptions options) async {
-    final content = _getBestPracticesContent(options);
-    await FileUtils.writeStringToFile('${outputDir.path}/doc/BEST_PRACTICES.md', content);
+  /// Copia recursivamente el contenido de .fpd adaptando el contenido
+  Future<void> _copyFpdDirectory(Directory source, Directory target, PackageOptions options) async {
+    await for (final entity in source.list()) {
+      if (entity is Directory) {
+        final targetSubDir = Directory('${target.path}/${entity.path.split('/').last}');
+        await targetSubDir.create(recursive: true);
+        await _copyFpdDirectory(entity, targetSubDir, options);
+      } else if (entity is File && entity.path.endsWith('.md')) {
+        final targetFile = File('${target.path}/${entity.path.split('/').last}');
+        await _adaptFpdFile(entity, targetFile, options);
+      }
+    }
   }
 
-  Future<void> _generateDevelopmentChecklists(Directory outputDir, PackageOptions options) async {
-    // Checklist de desarrollo
-    final devChecklist = _getDevChecklistContent(options);
-    await FileUtils.writeStringToFile('${outputDir.path}/doc/DEV_CHECKLIST.md', devChecklist);
-    
-    // Checklist de testing
-    final testChecklist = _getTestChecklistContent(options);
-    await FileUtils.writeStringToFile('${outputDir.path}/doc/TEST_CHECKLIST.md', testChecklist);
-    
-    // Checklist de publicación
-    final pubChecklist = _getPublishChecklistContent(options);
-    await FileUtils.writeStringToFile('${outputDir.path}/doc/PUBLISH_CHECKLIST.md', pubChecklist);
+  /// Adapta el contenido de un archivo .fpd para el nuevo package
+  Future<void> _adaptFpdFile(File sourceFile, File targetFile, PackageOptions options) async {
+    try {
+      final content = await sourceFile.readAsString();
+      
+      // Adaptar el contenido según el tipo de package y sus opciones
+      String adaptedContent = content
+          .replaceAll('fpd_toolkit', options.name)
+          .replaceAll('FPD Toolkit', _getPackageDisplayName(options))
+          .replaceAll('Flutter/Dart package generator', options.description);
+      
+      // Adaptaciones específicas por tipo de package
+      switch (options.type) {
+        case 'app':
+          adaptedContent = _adaptForFlutterApp(adaptedContent, options);
+          break;
+        case 'plugin':
+          adaptedContent = _adaptForFlutterPlugin(adaptedContent, options);
+          break;
+        case 'package':
+          adaptedContent = _adaptForDartPackage(adaptedContent, options);
+          break;
+      }
+
+      await targetFile.writeAsString(adaptedContent);
+    } catch (e) {
+      Logger.verbose('Error adaptando archivo ${sourceFile.path}: $e');
+      // En caso de error, crear archivo básico
+      await targetFile.writeAsString(_getBasicDocContent(options));
+    }
   }
+
+  /// Crea estructura básica de .fpd si no existe la fuente
+  Future<void> _createBasicFpdStructure(Directory outputDir, PackageOptions options) async {
+    final fpdDir = Directory('${outputDir.path}/.fpd');
+    await fpdDir.create(recursive: true);
+    
+    // Crear README básico
+    final readmeFile = File('${fpdDir.path}/README.md');
+    await readmeFile.writeAsString(_getBasicFpdReadme(options));
+  }
+
+  String _getPackageDisplayName(PackageOptions options) {
+    return options.name
+        .split('_')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+  }
+
+  String _adaptForFlutterApp(String content, PackageOptions options) {
+    return content
+        .replaceAll('dart pub get', 'flutter pub get')
+        .replaceAll('dart test', 'flutter test')
+        .replaceAll('dart run', 'flutter run');
+  }
+
+  String _adaptForFlutterPlugin(String content, PackageOptions options) {
+    return content
+        .replaceAll('dart pub get', 'flutter pub get')
+        .replaceAll('dart test', 'flutter test')
+        .replaceAll('package development', 'plugin development')
+        .replaceAll('Dart package', 'Flutter plugin');
+  }
+
+  String _adaptForDartPackage(String content, PackageOptions options) {
+    return content
+        .replaceAll('Flutter', 'Dart')
+        .replaceAll('flutter pub get', 'dart pub get')
+        .replaceAll('flutter test', 'dart test');
+  }
+
+  String _getBasicDocContent(PackageOptions options) {
+    return '''
+# ${_getPackageDisplayName(options)} Documentation
+
+${options.description}
+
+## Development
+
+This ${options.type} follows best practices for ${options.type == 'app' ? 'Flutter applications' : options.type == 'plugin' ? 'Flutter plugins' : 'Dart packages'}.
+
+## Getting Started
+
+1. Install dependencies: `${options.type == 'app' || options.type == 'plugin' ? 'flutter' : 'dart'} pub get`
+2. Run tests: `${options.type == 'app' || options.type == 'plugin' ? 'flutter' : 'dart'} test`
+${options.type == 'app' ? '3. Run the app: `flutter run`' : ''}
+
+## Contributing
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for details.
+''';
+  }
+
+  String _getBasicFpdReadme(PackageOptions options) {
+    return '''
+# ${_getPackageDisplayName(options)} - Development Documentation
+
+This directory contains all development guides, best practices, and resources for the ${options.name} ${options.type}.
+
+## Structure
+
+This documentation follows the FPD (Flutter/Dart Package Development) standard for maintaining high-quality ${options.type == 'app' ? 'applications' : options.type == 'plugin' ? 'plugins' : 'packages'}.
+
+## Usage
+
+Refer to the main [README.md](../README.md) for usage instructions.
+''';
+  }
+
 
   Future<void> _generateContributingGuide(Directory outputDir, PackageOptions options) async {
     final content = _getContributingContent(options);
@@ -840,7 +951,7 @@ ${options.name}/
 │   └── src/                          # Implementación interna
 ├── test/                             # Tests unitarios
 ├── example/                          # Ejemplos de uso
-├── doc/                              # Documentación
+├── .fpd/                             # Documentation and guides
 └── pubspec.yaml                      # Configuración
 ```
 
