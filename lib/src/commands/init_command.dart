@@ -495,20 +495,20 @@ ${_getProjectTypeDescription(projectType)}
 ### Installation
 
 1. Clone the repository:
-\`\`\`bash
+```bash
 git clone https://github.com/username/$projectName.git
 cd $projectName
-\`\`\`
+```
 
 2. Install dependencies:
-\`\`\`bash
+```bash
 ${isFlutterProject ? 'flutter' : 'dart'} pub get
-\`\`\`
+```
 
 3. ${isFlutterProject ? 'Run the app:' : 'Run tests:'}
-\`\`\`bash
+```bash
 ${isFlutterProject ? 'flutter run' : 'dart test'}
-\`\`\`
+```
 
 ## Usage
 
@@ -518,29 +518,29 @@ ${_getUsageSection(projectType)}
 
 ### Running Tests
 
-\`\`\`bash
+```bash
 ${isFlutterProject ? 'flutter' : 'dart'} test
-\`\`\`
+```
 
 ### Code Generation (if applicable)
 
-\`\`\`bash
+```bash
 dart run build_runner build
-\`\`\`
+```
 
 ### Linting
 
-\`\`\`bash
+```bash
 ${isFlutterProject ? 'flutter' : 'dart'} analyze
 dart format --set-exit-if-changed .
-\`\`\`
+```
 
 ## Contributing
 
 1. Fork the project
-2. Create your feature branch (\`git checkout -b feature/amazing-feature\`)
-3. Commit your changes (\`git commit -m 'Add amazing feature'\`)
-4. Push to the branch (\`git push origin feature/amazing-feature\`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
 ## Architecture
@@ -597,37 +597,37 @@ This Flutter app provides [describe main functionality].
         return '''
 Add this plugin to your `pubspec.yaml`:
 
-\`\`\`yaml
+```yaml
 dependencies:
   your_plugin: ^1.0.0
-\`\`\`
+```
 
 Then use it in your code:
 
-\`\`\`dart
+```dart
 import 'package:your_plugin/your_plugin.dart';
 
 // Example usage
 final result = await YourPlugin.doSomething();
-\`\`\`''';
+```''';
       case 'dart_package':
         return '''
 Add this package to your `pubspec.yaml`:
 
-\`\`\`yaml
+```yaml
 dependencies:
   your_package: ^1.0.0
-\`\`\`
+```
 
 Import and use:
 
-\`\`\`dart
+```dart
 import 'package:your_package/your_package.dart';
 
 // Example usage
 final utility = YourUtility();
 utility.doSomething();
-\`\`\`''';
+```''';
       default:
         return 'Documentation coming soon...';
     }

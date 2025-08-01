@@ -184,7 +184,7 @@ class ValidateCommand extends Command {
 
       // Validar publish_to
       if (!yaml.containsKey('publish_to') || yaml['publish_to'] != 'none') {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.warning,
           message: 'Consider using "publish_to: none" to avoid accidental publication',
           file: 'pubspec.yaml',
@@ -280,7 +280,7 @@ class ValidateCommand extends Command {
       final content = await readmeFile.readAsString();
       
       if (content.length < 100) {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.warning,
           message: 'README.md too short, consider adding more information',
           file: 'README.md',
@@ -288,7 +288,7 @@ class ValidateCommand extends Command {
       }
       
       if (!content.contains('##') && !content.contains('#')) {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.warning,
           message: 'README.md without sections, consider adding headers',
           file: 'README.md',
@@ -296,7 +296,7 @@ class ValidateCommand extends Command {
       }
       
       if (strict && !content.contains('```')) {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.warning,
           message: 'README.md without code examples',
           file: 'README.md',

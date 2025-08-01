@@ -157,7 +157,7 @@ class InteractivePrompt {
 
   /// Display a header for a section
   static void showHeader(String title) {
-    print('\n' + '=' * 60);
+    print('\n${'=' * 60}');
     print('  $title');
     print('=' * 60);
   }
@@ -183,8 +183,8 @@ class InteractivePrompt {
     String? suggestedName,
   }) {
     while (true) {
-      String question = 'Package name (snake_case)';
-      String? effectiveDefault = defaultValue ?? suggestedName;
+      const String question = 'Package name (snake_case)';
+      final String? effectiveDefault = defaultValue ?? suggestedName;
       
       final input = promptText(
         question: question,
