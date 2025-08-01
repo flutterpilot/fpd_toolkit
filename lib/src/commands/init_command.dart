@@ -3,8 +3,9 @@ import 'package:args/args.dart';
 import 'package:yaml/yaml.dart';
 import 'base_command.dart';
 import '../utils/logger.dart';
+import '../utils/interactive_prompt.dart';
 
-/// Comando para inicializar proyectos existentes
+/// Command to initialize existing projects
 class InitCommand extends Command {
   late final ArgParser _argParser;
 
@@ -14,37 +15,42 @@ class InitCommand extends Command {
         'force',
         abbr: 'f',
         negatable: false,
-        help: 'Sobrescribe archivos existentes',
+        help: 'Overwrite existing files',
       )
       ..addFlag(
         'analysis',
         negatable: false,
-        help: 'Configura analysis_options.yaml',
+        help: 'Configure analysis_options.yaml',
         defaultsTo: true,
       )
       ..addFlag(
         'ci',
         negatable: false,
-        help: 'Configura GitHub Actions CI/CD',
+        help: 'Configure GitHub Actions CI/CD',
         defaultsTo: true,
       )
       ..addFlag(
         'doc',
         negatable: false,
-        help: 'Mejora documentación existente',
+        help: 'Improve existing documentation',
         defaultsTo: true,
       )
       ..addFlag(
         'tests',
         negatable: false,
-        help: 'Añade estructura de tests básica',
+        help: 'Add basic test structure',
         defaultsTo: true,
+      )
+      ..addFlag(
+        'non-interactive',
+        negatable: false,
+        help: 'Run in non-interactive mode',
       )
       ..addFlag(
         'help',
         abbr: 'h',
         negatable: false,
-        help: 'Muestra ayuda para este comando',
+        help: 'Show help for this command',
       );
   }
 
@@ -52,7 +58,7 @@ class InitCommand extends Command {
   String get name => 'init';
 
   @override
-  String get description => 'Inicializa un proyecto Flutter/Dart existente con mejores prácticas';
+  String get description => 'Initialize an existing Flutter/Dart project with best practices';
 
   @override
   ArgParser get argParser => _argParser;
@@ -64,58 +70,144 @@ class InitCommand extends Command {
       return;
     }
 
+    final isNonInteractive = argResults['non-interactive'] as bool;
     final currentDir = Directory.current;
     final pubspecFile = File('${currentDir.path}/pubspec.yaml');
 
     if (!pubspecFile.existsSync()) {
-      Logger.error('❌ No se encontró pubspec.yaml en el directorio actual');
-      Logger.info('   Asegúrate de estar en el directorio raíz del proyecto');
+      Logger.error('❌ No pubspec.yaml found in current directory');
+      Logger.info('   Make sure you are in the project root directory');
       return;
     }
 
-    final force = argResults['force'] as bool;
-    final setupAnalysis = argResults['analysis'] as bool;
-    final setupCI = argResults['ci'] as bool;
-    final improveDocs = argResults['doc'] as bool;
-    final setupTests = argResults['tests'] as bool;
+    // Get configuration options
+    final config = await _gatherInitConfiguration(argResults, isNonInteractive);
+    if (config == null) {
+      Logger.info('Initialization cancelled');
+      return;
+    }
 
-    Logger.info('🔧 Inicializando proyecto Flutter/Dart...\n');
+    Logger.info('🔧 Initializing Flutter/Dart project...\n');
 
     try {
-      // Detectar tipo de proyecto
+      // Detect project type
       final projectType = await _detectProjectType(pubspecFile);
-      Logger.info('📦 Tipo de proyecto detectado: $projectType');
+      Logger.info('📦 Detected project type: $projectType');
 
-      // Configurar analysis_options.yaml
-      if (setupAnalysis) {
-        await _setupAnalysisOptions(currentDir, force, projectType);
+      // Configure analysis_options.yaml
+      if (config.setupAnalysis) {
+        await _setupAnalysisOptions(currentDir, config.force, projectType);
       }
 
-      // Configurar CI/CD
-      if (setupCI) {
-        await _setupGitHubActions(currentDir, force, projectType);
+      // Configure CI/CD
+      if (config.setupCI) {
+        await _setupGitHubActions(currentDir, config.force, projectType);
       }
 
-      // Mejorar documentación
-      if (improveDocs) {
-        await _improveDocumentation(currentDir, force, projectType);
+      // Improve documentation
+      if (config.improveDocs) {
+        await _improveDocumentation(currentDir, config.force, projectType);
       }
 
-      // Configurar tests
-      if (setupTests) {
-        await _setupTestStructure(currentDir, force, projectType);
+      // Configure tests
+      if (config.setupTests) {
+        await _setupTestStructure(currentDir, config.force, projectType);
       }
 
-      // Crear archivos útiles adicionales
-      await _createUtilityFiles(currentDir, force, projectType);
+      // Create additional utility files
+      await _createUtilityFiles(currentDir, config.force, projectType);
 
-      Logger.success('\n✅ Proyecto inicializado exitosamente!');
+      Logger.success('\n✅ Project initialized successfully!');
       _showNextSteps(projectType);
 
     } catch (e) {
-      Logger.error('❌ Error inicializando proyecto: $e');
+      Logger.error('❌ Error initializing project: $e');
       exit(1);
     }
+  }
+
+  /// Gather initialization configuration interactively or from arguments
+  Future<InitConfig?> _gatherInitConfiguration(ArgResults argResults, bool isNonInteractive) async {
+    if (!isNonInteractive) {
+      InteractivePrompt.showHeader('🔧 FPD Toolkit - Project Initializer');
+      InteractivePrompt.showInfo('Adding best practices to your existing Flutter/Dart project');
+      print('');
+    }
+
+    // Get force flag
+    bool force = argResults['force'] as bool;
+    if (!force && !isNonInteractive) {
+      force = InteractivePrompt.promptConfirm(
+        question: 'Overwrite existing files if they exist?',
+        defaultValue: false,
+      );
+    }
+
+    // Get analysis setup preference
+    bool setupAnalysis = argResults['analysis'] as bool;
+    if (!isNonInteractive) {
+      setupAnalysis = InteractivePrompt.promptConfirm(
+        question: 'Configure analysis_options.yaml with best practices?',
+        defaultValue: true,
+      );
+    }
+
+    // Get CI/CD setup preference
+    bool setupCI = argResults['ci'] as bool;
+    if (!isNonInteractive) {
+      setupCI = InteractivePrompt.promptConfirm(
+        question: 'Configure GitHub Actions CI/CD?',
+        defaultValue: true,
+      );
+    }
+
+    // Get documentation improvement preference
+    bool improveDocs = argResults['doc'] as bool;
+    if (!isNonInteractive) {
+      improveDocs = InteractivePrompt.promptConfirm(
+        question: 'Improve existing documentation?',
+        defaultValue: true,
+      );
+    }
+
+    // Get test setup preference
+    bool setupTests = argResults['tests'] as bool;
+    if (!isNonInteractive) {
+      setupTests = InteractivePrompt.promptConfirm(
+        question: 'Add basic test structure?',
+        defaultValue: true,
+      );
+    }
+
+    // Show summary if interactive
+    if (!isNonInteractive) {
+      print('');
+      InteractivePrompt.showHeader('📋 Configuration Summary');
+      print('  Overwrite existing files: ${force ? "Yes" : "No"}');
+      print('  Configure analysis: ${setupAnalysis ? "Yes" : "No"}');
+      print('  Setup CI/CD: ${setupCI ? "Yes" : "No"}');
+      print('  Improve docs: ${improveDocs ? "Yes" : "No"}');
+      print('  Setup tests: ${setupTests ? "Yes" : "No"}');
+      print('');
+
+      final shouldContinue = InteractivePrompt.promptConfirm(
+        question: 'Initialize project with these settings?',
+        defaultValue: true,
+      );
+
+      if (!shouldContinue) {
+        return null;
+      }
+      print('');
+    }
+
+    return InitConfig(
+      force: force,
+      setupAnalysis: setupAnalysis,
+      setupCI: setupCI,
+      improveDocs: improveDocs,
+      setupTests: setupTests,
+    );
   }
 
   Future<String> _detectProjectType(File pubspecFile) async {
@@ -878,14 +970,14 @@ Future<void> _runCommand(String command, List<String> args) async {
       Logger.info('   4. make build         # Compilar el paquete');
     }
     
-    Logger.info('\n🔧 Herramientas configuradas:');
-    Logger.info('   ✅ Análisis estático con lints');
+    Logger.info('\n🔧 Configured tools:');
+    Logger.info('   ✅ Static analysis with lints');
     Logger.info('   ✅ GitHub Actions CI/CD');
-    Logger.info('   ✅ Documentación mejorada');
-    Logger.info('   ✅ Estructura de tests');
-    Logger.info('   ✅ Scripts de desarrollo (Makefile)');
+    Logger.info('   ✅ Improved documentation');
+    Logger.info('   ✅ Test structure');
+    Logger.info('   ✅ Development scripts (Makefile)');
     
-    Logger.info('\n📖 Para más información:');
+    Logger.info('\n📖 For more information:');
     Logger.info('   fpd-toolkit guide --all');
     Logger.info('   make help');
   }
@@ -895,32 +987,52 @@ Future<void> _runCommand(String command, List<String> args) async {
     print('''
 $description
 
-Uso: fpd-toolkit init [opciones]
+Usage: fpd-toolkit init [options]
 
-Opciones:
-  -f, --force          Sobrescribe archivos existentes
-      --[no-]analysis  Configura analysis_options.yaml (default: on)
-      --[no-]ci         Configura GitHub Actions CI/CD (default: on)
-      --[no-]doc        Mejora documentación existente (default: on)
-      --[no-]tests      Añade estructura de tests básica (default: on)
-  -h, --help           Muestra esta ayuda
+Options (all optional in interactive mode):
+  -f, --force          Overwrite existing files
+      --[no-]analysis  Configure analysis_options.yaml (default: on)
+      --[no-]ci         Configure GitHub Actions CI/CD (default: on)
+      --[no-]doc        Improve existing documentation (default: on)
+      --[no-]tests      Add basic test structure (default: on)
+      --non-interactive Run in non-interactive mode
+  -h, --help           Show this help
 
-Este comando configura:
-  📊 analysis_options.yaml con lints recomendados
-  🔄 GitHub Actions para CI/CD automático
-  📚 Documentación mejorada (README, CHANGELOG, LICENSE)
-  🧪 Estructura de tests organizada
-  🛠️ Makefile con comandos útiles
-  📝 Scripts de desarrollo
-  🙈 .gitignore completo
+This command configures:
+  📊 analysis_options.yaml with recommended lints
+  🔄 GitHub Actions for automatic CI/CD
+  📚 Improved documentation (README, CHANGELOG, LICENSE)
+  🧪 Organized test structure
+  🛠️ Makefile with useful commands
+  📝 Development scripts
+  🙈 Complete .gitignore
 
-Ejemplos:
-  fpd-toolkit init                    # Configuración completa
-  fpd-toolkit init --force           # Sobrescribir archivos existentes
-  fpd-toolkit init --no-ci           # Sin GitHub Actions
-  fpd-toolkit init --no-analysis     # Sin analysis_options.yaml
+Interactive Examples:
+  fpd-toolkit init                    # Interactive mode - asks for preferences
+  fpd-toolkit init --force           # Interactive mode with force overwrite
 
-Nota: Ejecutar desde el directorio raíz del proyecto (donde está pubspec.yaml)
+Non-Interactive Examples:
+  fpd-toolkit init --non-interactive # Complete configuration with defaults
+  fpd-toolkit init --force --no-ci --non-interactive # Specific configuration
+
+Note: Run from project root directory (where pubspec.yaml is located)
 ''');
   }
+}
+
+/// Configuration for project initialization
+class InitConfig {
+  const InitConfig({
+    required this.force,
+    required this.setupAnalysis,
+    required this.setupCI,
+    required this.improveDocs,
+    required this.setupTests,
+  });
+
+  final bool force;
+  final bool setupAnalysis;
+  final bool setupCI;
+  final bool improveDocs;
+  final bool setupTests;
 }

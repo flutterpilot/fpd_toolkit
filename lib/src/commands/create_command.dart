@@ -4,8 +4,9 @@ import 'base_command.dart';
 import '../generators/package_generator.dart';
 import '../utils/logger.dart';
 import '../utils/validator.dart';
+import '../utils/interactive_prompt.dart';
 
-/// Comando para crear nuevos paquetes Flutter/Dart
+/// Command to create new Flutter/Dart packages with interactive prompts
 class CreateCommand extends Command {
   late final ArgParser _argParser;
 
@@ -14,46 +15,48 @@ class CreateCommand extends Command {
       ..addOption(
         'description',
         abbr: 'd',
-        help: 'Descripción del paquete',
+        help: 'Package description',
       )
       ..addOption(
         'author',
         abbr: 'a',
-        help: 'Autor del paquete',
-        defaultsTo: 'Your Name',
+        help: 'Package author',
       )
       ..addOption(
         'organization',
         abbr: 'o',
-        help: 'Organización (ej: com.example)',
-        defaultsTo: 'com.example',
+        help: 'Organization (e.g., com.example)',
       )
       ..addOption(
         'platforms',
         abbr: 'p',
-        help: 'Plataformas soportadas (separadas por coma)',
-        defaultsTo: 'android,ios',
+        help: 'Supported platforms (comma-separated)',
       )
       ..addOption(
         'output',
-        help: 'Directorio de salida',
+        help: 'Output directory',
       )
       ..addOption(
         'template',
         abbr: 't',
-        help: 'Template específico a usar',
+        help: 'Specific template to use',
       )
       ..addFlag(
         'force',
         abbr: 'f',
         negatable: false,
-        help: 'Sobrescribe archivos existentes',
+        help: 'Overwrite existing files',
+      )
+      ..addFlag(
+        'non-interactive',
+        negatable: false,
+        help: 'Run in non-interactive mode (use defaults/arguments only)',
       )
       ..addFlag(
         'help',
         abbr: 'h',
         negatable: false,
-        help: 'Muestra ayuda para este comando',
+        help: 'Show help for this command',
       );
   }
 
@@ -61,7 +64,7 @@ class CreateCommand extends Command {
   String get name => 'create';
 
   @override
-  String get description => 'Crea un nuevo paquete Flutter/Dart con mejores prácticas';
+  String get description => 'Create a new Flutter/Dart package with best practices';
 
   @override
   ArgParser get argParser => _argParser;
@@ -73,78 +76,252 @@ class CreateCommand extends Command {
       return;
     }
 
+    final isNonInteractive = argResults['non-interactive'] as bool;
     final args = argResults.rest;
-    if (args.length < 2) {
-      Logger.error('❌ Uso: fpd-toolkit create <tipo> <nombre> [opciones]');
-      Logger.info('Tipos disponibles: app, plugin, package');
+
+    // Get package information interactively or from arguments
+    final packageInfo = await _gatherPackageInformation(argResults, args, isNonInteractive);
+    
+    if (packageInfo == null) {
+      Logger.error('❌ Package creation cancelled');
       return;
     }
 
-    final type = args[0];
-    final name = args[1];
+    // Verify directory doesn't exist or get confirmation to overwrite
+    final outputDir = Directory(packageInfo.outputDir);
+    if (outputDir.existsSync() && !packageInfo.force) {
+      if (isNonInteractive) {
+        Logger.error('❌ Directory ${packageInfo.outputDir} already exists');
+        Logger.info('   Use --force to overwrite');
+        return;
+      }
 
-    // Validar nombre del paquete
-    if (!Validator.isValidPackageName(name)) {
-      Logger.error('❌ Nombre de paquete inválido: $name');
-      Logger.info('   El nombre debe usar snake_case y contener solo letras, números y guiones bajos');
-      return;
-    }
+      InteractivePrompt.showWarning('Directory ${packageInfo.outputDir} already exists');
+      final shouldOverwrite = InteractivePrompt.promptConfirm(
+        question: 'Do you want to overwrite it?',
+        defaultValue: false,
+      );
 
-    // Validar tipo
-    if (!['app', 'plugin', 'package'].contains(type)) {
-      Logger.error('❌ Tipo de paquete inválido: $type');
-      Logger.info('   Tipos válidos: app, plugin, package');
-      return;
-    }
-
-    // Configurar opciones
-    final options = PackageOptions(
-      name: name,
-      type: type,
-      description: argResults['description'] as String? ?? 
-          _getDefaultDescription(type),
-      author: argResults['author'] as String,
-      organization: argResults['organization'] as String,
-      platforms: _parsePlatforms(argResults['platforms'] as String),
-      outputDir: argResults['output'] as String? ?? name,
-      template: argResults['template'] as String?,
-      force: argResults['force'] as bool,
-    );
-
-    // Verificar si el directorio ya existe
-    final outputDir = Directory(options.outputDir);
-    if (outputDir.existsSync() && !options.force) {
-      Logger.error('❌ El directorio ${options.outputDir} ya existe');
-      Logger.info('   Usa --force para sobrescribir');
-      return;
+      if (!shouldOverwrite) {
+        Logger.info('Package creation cancelled');
+        return;
+      }
     }
 
     try {
-      Logger.info('📦 Creando paquete tipo "$type" con nombre "$name"...');
+      Logger.info('📦 Creating ${packageInfo.type} package "${packageInfo.name}"...');
       
       final generator = PackageGenerator();
-      await generator.generate(options);
+      await generator.generate(packageInfo);
       
-      Logger.success('✅ Paquete creado exitosamente en: ${options.outputDir}');
-      _showNextSteps(options);
+      Logger.success('✅ Package created successfully in: ${packageInfo.outputDir}');
+      _showNextSteps(packageInfo);
       
     } catch (e) {
-      Logger.error('❌ Error creando paquete: $e');
+      Logger.error('❌ Error creating package: $e');
       exit(1);
     }
   }
 
-  String _getDefaultDescription(String type) {
+  /// Gather all package information interactively or from arguments
+  Future<PackageOptions?> _gatherPackageInformation(
+    ArgResults argResults, 
+    List<String> args, 
+    bool isNonInteractive
+  ) async {
+    if (!isNonInteractive) {
+      InteractivePrompt.showHeader('🚀 FPD Toolkit - Package Creator');
+      InteractivePrompt.showInfo('Creating high-quality Flutter/Dart packages with best practices');
+      print('');
+    }
+
+    // 1. Get package type
+    String? type;
+    if (args.isNotEmpty) {
+      type = args[0];
+      if (!['app', 'plugin', 'package'].contains(type)) {
+        if (isNonInteractive) {
+          Logger.error('❌ Invalid package type: $type');
+          Logger.info('   Valid types: app, plugin, package');
+          return null;
+        }
+        type = null; // Will be prompted for
+      }
+    }
+
+    if (type == null) {
+      if (isNonInteractive) {
+        Logger.error('❌ Package type is required in non-interactive mode');
+        Logger.info('   Usage: fpd-toolkit create <type> [name] [options]');
+        return null;
+      }
+
+      type = InteractivePrompt.promptSelect(
+        question: 'What type of package do you want to create?',
+        options: ['app', 'plugin', 'package'],
+        defaultValue: 'package',
+      );
+    }
+
+    // 2. Get package name
+    String? name;
+    if (args.length > 1) {
+      name = args[1];
+      if (!Validator.isValidPackageName(name)) {
+        if (isNonInteractive) {
+          Logger.error('❌ Invalid package name: $name');
+          Logger.info('   Package names must use snake_case and contain only letters, numbers, and underscores');
+          return null;
+        }
+        name = null; // Will be prompted for
+      }
+    }
+
+    if (name == null) {
+      if (isNonInteractive) {
+        Logger.error('❌ Package name is required in non-interactive mode');
+        Logger.info('   Usage: fpd-toolkit create $type <name> [options]');
+        return null;
+      }
+
+      name = InteractivePrompt.promptPackageName(
+        suggestedName: _generateSuggestedName(type),
+      );
+    }
+
+    if (!isNonInteractive) {
+      print(''); // Add spacing
+    }
+
+    // 3. Get description
+    String? description = argResults['description'] as String?;
+    if (description == null && !isNonInteractive) {
+      description = InteractivePrompt.promptDescription(
+        packageType: type,
+        packageName: name,
+      );
+    }
+    description ??= _getDefaultDescription(type, name);
+
+    // 4. Get author
+    String? author = argResults['author'] as String?;
+    if (author == null && !isNonInteractive) {
+      author = InteractivePrompt.promptAuthor();
+    }
+    author ??= _getDefaultAuthor();
+
+    // 5. Get organization
+    String? organization = argResults['organization'] as String?;
+    if (organization == null && !isNonInteractive) {
+      organization = InteractivePrompt.promptOrganization();
+    }
+    organization ??= 'com.example';
+
+    // 6. Get platforms (for plugins and apps)
+    List<String> platforms = [];
+    if (type == 'plugin' || type == 'app') {
+      final platformsString = argResults['platforms'] as String?;
+      if (platformsString != null) {
+        platforms = _parsePlatforms(platformsString);
+      } else if (!isNonInteractive) {
+        final availablePlatforms = [
+          'android', 'ios', 'web', 'windows', 'linux', 'macos'
+        ];
+        final defaultPlatforms = type == 'plugin' 
+          ? ['android', 'ios'] 
+          : ['android', 'ios', 'web'];
+        
+        platforms = InteractivePrompt.promptMultiSelect(
+          question: 'Which platforms do you want to support?',
+          options: availablePlatforms,
+          defaultValues: defaultPlatforms,
+        );
+      } else {
+        platforms = type == 'plugin' 
+          ? ['android', 'ios'] 
+          : ['android', 'ios', 'web'];
+      }
+    }
+
+    // 7. Get output directory
+    final String outputDir = argResults['output'] as String? ?? name;
+
+    // 8. Get template
+    final String? template = argResults['template'] as String?;
+
+    // 9. Get force flag
+    final bool force = argResults['force'] as bool;
+
+    // 10. Show summary if interactive
+    if (!isNonInteractive) {
+      print('');
+      InteractivePrompt.showHeader('📋 Package Summary');
+      print('  Type: $type');
+      print('  Name: $name');
+      print('  Description: $description');
+      print('  Author: $author');
+      print('  Organization: $organization');
+      if (platforms.isNotEmpty) {
+        print('  Platforms: ${platforms.join(', ')}');
+      }
+      print('  Output Directory: $outputDir');
+      print('');
+
+      final shouldContinue = InteractivePrompt.promptConfirm(
+        question: 'Create this package?',
+        defaultValue: true,
+      );
+
+      if (!shouldContinue) {
+        return null;
+      }
+      print('');
+    }
+
+    return PackageOptions(
+      name: name,
+      type: type,
+      description: description,
+      author: author,
+      organization: organization,
+      platforms: platforms,
+      outputDir: outputDir,
+      template: template,
+      force: force,
+    );
+  }
+
+  String _generateSuggestedName(String type) {
     switch (type) {
       case 'app':
-        return 'Una nueva aplicación Flutter';
+        return 'my_flutter_app';
       case 'plugin':
-        return 'Un nuevo plugin Flutter';
+        return 'my_flutter_plugin';
       case 'package':
-        return 'Un nuevo paquete Dart';
+        return 'my_dart_package';
       default:
-        return 'Un nuevo proyecto Flutter/Dart';
+        return 'my_package';
     }
+  }
+
+  String _getDefaultDescription(String type, String name) {
+    switch (type) {
+      case 'app':
+        return 'A new Flutter application - $name';
+      case 'plugin':
+        return 'A new Flutter plugin for $name functionality';
+      case 'package':
+        return 'A new Dart package for $name utilities';
+      default:
+        return 'A new Flutter/Dart project';
+    }
+  }
+
+  String _getDefaultAuthor() {
+    final systemUser = Platform.environment['USER'] ?? 
+                      Platform.environment['USERNAME'] ?? 
+                      'Your Name';
+    return systemUser;
   }
 
   List<String> _parsePlatforms(String platformString) {
@@ -152,22 +329,26 @@ class CreateCommand extends Command {
   }
 
   void _showNextSteps(PackageOptions options) {
-    Logger.info('\n📋 Próximos pasos:');
-    Logger.info('   1. cd ${options.outputDir}');
+    InteractivePrompt.showHeader('🎉 Next Steps');
+    print('1. cd ${options.outputDir}');
     
     if (options.type == 'app') {
-      Logger.info('   2. flutter pub get');
-      Logger.info('   3. flutter run');
+      print('2. flutter pub get');
+      print('3. flutter run');
     } else {
-      Logger.info('   2. dart pub get');
-      Logger.info('   3. dart test');
+      print('2. dart pub get');
+      print('3. dart test');
     }
     
-    Logger.info('   4. Personaliza tu ${options.type}');
-    Logger.info('\n🔍 Para validar tu paquete:');
-    Logger.info('   fpd-toolkit validate ${options.outputDir}');
-    Logger.info('\n📖 Para ver guías de desarrollo:');
-    Logger.info('   fpd-toolkit guide --all');
+    print('4. Customize your ${options.type}');
+    print('');
+    print('🔍 To validate your package:');
+    print('   fpd-toolkit validate ${options.outputDir}');
+    print('');
+    print('📖 To view development guides:');
+    print('   fpd-toolkit guide --list');
+    print('   fpd-toolkit guide best-practices architecture-structure');
+    print('');
   }
 
   @override
@@ -175,31 +356,37 @@ class CreateCommand extends Command {
     print('''
 $description
 
-Uso: fpd-toolkit create <tipo> <nombre> [opciones]
+Usage: fpd-toolkit create [type] [name] [options]
 
-Tipos de paquete:
-  app                      Aplicación Flutter
-  plugin                   Plugin Flutter
-  package                  Paquete Dart
+Package Types:
+  app                      Flutter application
+  plugin                   Flutter plugin
+  package                  Dart package
 
-Argumentos:
-  <tipo>                   Tipo de paquete a crear
-  <nombre>                 Nombre del paquete (snake_case)
+Arguments (all optional in interactive mode):
+  [type]                   Package type to create
+  [name]                   Package name (snake_case)
 
-Opciones:
-  -d, --description        Descripción del paquete
-  -a, --author             Autor del paquete
-  -o, --organization       Organización (ej: com.example)
-  -p, --platforms          Plataformas soportadas (android,ios,web,windows,linux,macos)
-      --output             Directorio de salida (por defecto: nombre del paquete)
-  -t, --template           Template específico a usar
-  -f, --force              Sobrescribe archivos existentes
-  -h, --help               Muestra esta ayuda
+Options:
+  -d, --description        Package description
+  -a, --author             Package author
+  -o, --organization       Organization (e.g., com.example)
+  -p, --platforms          Supported platforms (android,ios,web,windows,linux,macos)
+      --output             Output directory (default: package name)
+  -t, --template           Specific template to use
+  -f, --force              Overwrite existing files
+      --non-interactive    Run in non-interactive mode
+  -h, --help               Show this help
 
-Ejemplos:
-  fpd-toolkit create app mi_app --description "Mi aplicación increíble"
-  fpd-toolkit create plugin mi_plugin --platforms android,ios,web
-  fpd-toolkit create package mi_paquete --author "Tu Nombre"
+Interactive Examples:
+  fpd-toolkit create                    # Interactive mode - asks everything
+  fpd-toolkit create app                # Interactive mode - asks name and options
+  fpd-toolkit create app my_app         # Interactive mode - asks remaining options
+
+Non-Interactive Examples:
+  fpd-toolkit create app my_app --description "My awesome app" --non-interactive
+  fpd-toolkit create plugin my_plugin --platforms android,ios --author "Your Name"
+  fpd-toolkit create package my_package --organization com.yourcompany
 ''');
   }
 }
